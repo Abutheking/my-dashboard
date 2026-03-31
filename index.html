@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>My Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=DM+Serif+Display&display=swap" rel="stylesheet" />
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f7f7f5;--surface:#ffffff;--surface2:#f2f2ef;
+  --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.14);
+  --text:#1a1a18;--text2:#6b6b65;--text3:#a0a09a;
+  --accent:#2d6a4f;--accent2:#40916c;
+  --blue:#2563a8;--amber:#b45309;--red:#b91c1c;
+  --radius:10px;--radius-sm:6px;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.6}
+.dash{max-width:1080px;margin:0 auto;padding:1.25rem 1rem 3rem}
+.top-bar{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:1.25rem;border-bottom:0.5px solid var(--border);margin-bottom:1.25rem;flex-wrap:wrap;gap:8px}
+.top-bar h1{font-family:'DM Serif Display',serif;font-size:22px;font-weight:400}
+.top-bar .sub{font-size:12px;color:var(--text3);margin-top:2px}
+.sync-status{font-size:11px;color:var(--text3);display:flex;align-items:center;gap:5px;margin-top:6px}
+.sync-dot{width:6px;height:6px;border-radius:50%;background:#ccc;transition:background 0.3s}
+.sync-dot.live{background:var(--accent2)}
+.tabs{display:flex;margin-bottom:1.25rem;border-bottom:0.5px solid var(--border);flex-wrap:wrap}
+.tab{padding:7px 15px;font-size:13px;border:none;border-bottom:2px solid transparent;cursor:pointer;background:none;color:var(--text2);transition:all 0.15s;font-family:'DM Sans',sans-serif;margin-bottom:-0.5px}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--text);border-bottom-color:var(--text);font-weight:500}
+.panel{display:none}
+.panel.active{display:block}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem}
+.card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:1rem 1.25rem}
+.card-title{font-size:11px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.85rem}
+input,select,textarea{font-family:'DM Sans',sans-serif;font-size:13px;padding:7px 10px;border:0.5px solid var(--border2);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);width:100%;transition:border-color 0.15s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--text2)}
+textarea{resize:vertical;min-height:100px;line-height:1.6}
+.input-row{display:flex;gap:8px;margin-bottom:0.75rem;flex-wrap:wrap}
+.input-row input,.input-row select{flex:1;min-width:110px;width:auto}
+.btn{font-family:'DM Sans',sans-serif;font-size:13px;padding:7px 16px;border:0.5px solid var(--border2);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);cursor:pointer;transition:all 0.15s;white-space:nowrap}
+.btn:hover{background:var(--surface2)}
+.item-list{display:flex;flex-direction:column;gap:5px}
+.item{display:flex;align-items:center;gap:9px;padding:8px 10px;border:0.5px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);font-size:13px}
+.item.done{opacity:0.4}
+.item.done .item-text{text-decoration:line-through}
+.item-text{flex:1;color:var(--text)}
+.item-meta{font-size:11px;color:var(--text3);white-space:nowrap}
+.del{font-size:16px;color:var(--text3);cursor:pointer;padding:0 2px;line-height:1;flex-shrink:0}
+.del:hover{color:var(--red)}
+.check{width:16px;height:16px;border:0.5px solid var(--border2);border-radius:3px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;color:transparent;transition:all 0.15s}
+.check:hover{border-color:var(--accent2)}
+.check.checked{background:var(--accent);border-color:var(--accent);color:#fff}
+.badge{font-size:11px;padding:2px 7px;border-radius:20px;white-space:nowrap}
+.badge-red{background:#fef2f2;color:var(--red)}
+.badge-amber{background:#fffbeb;color:var(--amber)}
+.badge-green{background:#f0fdf4;color:var(--accent)}
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1rem}
+.stat{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:0.85rem 1rem;text-align:center}
+.stat-num{font-family:'DM Serif Display',serif;font-size:28px;font-weight:400;color:var(--text)}
+.stat-label{font-size:11px;color:var(--text3);margin-top:1px}
+.event-item{padding:8px 12px;border-left:2px solid var(--blue);background:var(--surface2);border-radius:0 var(--radius-sm) var(--radius-sm) 0;margin-bottom:5px;font-size:13px;display:flex;align-items:flex-start;gap:8px}
+.etitle{font-weight:500;color:var(--text);flex:1}
+.etime{font-size:11px;color:var(--text3);margin-top:2px}
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.85rem}
+.cal-nav span{font-size:13px;font-weight:500}
+.cal-nav button{font-size:18px;background:none;border:none;cursor:pointer;color:var(--text2);padding:0 6px;line-height:1}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-day-name{font-size:11px;color:var(--text3);text-align:center;padding:4px 0}
+.cal-day{font-size:12px;text-align:center;padding:7px 2px;border-radius:var(--radius-sm);cursor:pointer;color:var(--text2);position:relative;transition:background 0.1s}
+.cal-day:hover{background:var(--surface2)}
+.cal-day.today{background:var(--text);color:#fff;font-weight:500}
+.cal-day.has-event::after{content:'';width:3px;height:3px;background:var(--accent2);border-radius:50%;display:block;margin:2px auto 0}
+.cal-day.today.has-event::after{background:#fff}
+.cal-day.other-month{opacity:0.25}
+.habit-row{display:flex;align-items:center;gap:10px;padding:8px 10px;border:0.5px solid var(--border);border-radius:var(--radius-sm);margin-bottom:5px;background:var(--surface2)}
+.habit-name{flex:1;font-size:13px}
+.habit-dots{display:flex;gap:4px}
+.hdot{width:20px;height:20px;border:0.5px solid var(--border2);border-radius:50%;cursor:pointer;font-size:9px;display:flex;align-items:center;justify-content:center;color:var(--text3);transition:all 0.15s;font-family:'DM Sans',sans-serif}
+.hdot:hover{border-color:var(--accent2)}
+.hdot.done{background:var(--accent);border-color:var(--accent);color:#fff}
+.grat-item{padding:10px 12px;background:var(--surface2);border-radius:var(--radius-sm);font-size:13px;color:var(--text);margin-bottom:5px;line-height:1.5;border-left:2px solid var(--accent2);display:flex;align-items:flex-start;gap:8px}
+.gdate{font-size:11px;color:var(--text3);white-space:nowrap;margin-top:1px}
+.gtext{flex:1}
+.empty{font-size:13px;color:var(--text3);padding:16px 0;text-align:center}
+.loading{font-size:13px;color:var(--text3);padding:12px 0;text-align:center}
+.section-label{font-size:11px;color:var(--text3);margin:0.85rem 0 0.4rem;font-weight:500;text-transform:uppercase;letter-spacing:0.04em}
+.client-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+@media(max-width:600px){
+  .tab{padding:6px 10px;font-size:12px}
+  .grid2{grid-template-columns:1fr}
+  .input-row{flex-direction:column}
+  .input-row input,.input-row select{width:100%}
+}
+</style>
+</head>
+<body>
+<div class="dash">
+  <div class="top-bar">
+    <div>
+      <h1 id="greeting">Good morning</h1>
+      <div class="sub" id="todayDate"></div>
+      <div class="sync-status"><div class="sync-dot" id="syncDot"></div><span id="syncLabel">Connecting…</span></div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('overview')">Today</button>
+    <button class="tab" onclick="switchTab('clients')">Clients</button>
+    <button class="tab" onclick="switchTab('tasks')">Tasks</button>
+    <button class="tab" onclick="switchTab('calendar')">Calendar</button>
+    <button class="tab" onclick="switchTab('habits')">Habits</button>
+    <button class="tab" onclick="switchTab('notes')">Notes</button>
+    <button class="tab" onclick="switchTab('gratitude')">Gratitude</button>
+  </div>
+
+  <!-- TODAY -->
+  <div class="panel active" id="panel-overview">
+    <div class="stat-row">
+      <div class="stat"><div class="stat-num" id="stat-tasks">—</div><div class="stat-label">tasks today</div></div>
+      <div class="stat"><div class="stat-num" id="stat-deadlines">—</div><div class="stat-label">due this week</div></div>
+      <div class="stat"><div class="stat-num" id="stat-habits">—</div><div class="stat-label">habits done</div></div>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <div class="card-title">Today's focus</div>
+        <div id="today-tasks-list" class="item-list"><div class="loading">Loading…</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Upcoming deadlines</div>
+        <div id="overview-deadlines" class="item-list"><div class="loading">Loading…</div></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:1rem">
+      <div class="card-title">Today's events</div>
+      <div id="overview-events"><div class="loading">Loading…</div></div>
+    </div>
+  </div>
+
+  <!-- CLIENTS -->
+  <div class="panel" id="panel-clients">
+    <div class="card" style="margin-bottom:1rem">
+      <div class="card-title">Add client deadline</div>
+      <div class="input-row">
+        <input type="text" id="client-name" placeholder="Client name" />
+        <select id="client-tag">
+          <option value="9Point">9Point Design</option>
+          <option value="MLN">MLN</option>
+          <option value="Apcotex">Apcotex</option>
+          <option value="ABC">ABC Chemicals</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="input-row">
+        <input type="text" id="client-task" placeholder="Deliverable or task" />
+        <input type="date" id="client-due" />
+        <select id="client-priority">
+          <option value="ok">Low</option>
+          <option value="soon">Medium</option>
+          <option value="urgent">Urgent</option>
+        </select>
+        <button class="btn" onclick="addClient()">Add</button>
+      </div>
+    </div>
+    <div id="client-list" class="item-list"><div class="loading">Loading…</div></div>
+  </div>
+
+  <!-- TASKS -->
+  <div class="panel" id="panel-tasks">
+    <div class="card" style="margin-bottom:1rem">
+      <div class="card-title">Add task</div>
+      <div class="input-row">
+        <input type="text" id="task-text" placeholder="What needs doing?" />
+        <input type="date" id="task-due" />
+        <select id="task-category">
+          <option value="Work">Work</option>
+          <option value="Personal">Personal</option>
+          <option value="MLN">MLN</option>
+          <option value="Admin">Admin</option>
+        </select>
+        <button class="btn" onclick="addTask()">Add</button>
+      </div>
+    </div>
+    <div class="grid2">
+      <div>
+        <div class="section-label">Active</div>
+        <div id="task-list-active" class="item-list"><div class="loading">Loading…</div></div>
+      </div>
+      <div>
+        <div class="section-label">Done</div>
+        <div id="task-list-done" class="item-list"><div class="empty">Nothing done yet</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CALENDAR -->
+  <div class="panel" id="panel-calendar">
+    <div class="grid2">
+      <div class="card">
+        <div class="cal-nav">
+          <button onclick="prevMonth()">&#8249;</button>
+          <span id="cal-month-label"></span>
+          <button onclick="nextMonth()">&#8250;</button>
+        </div>
+        <div class="cal-grid" id="cal-names"></div>
+        <div class="cal-grid" id="cal-days"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Add event</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <input type="text" id="ev-title" placeholder="Event title" />
+          <input type="date" id="ev-date" />
+          <input type="time" id="ev-time" />
+          <select id="ev-type">
+            <option value="meeting">Meeting</option>
+            <option value="deadline">Deadline</option>
+            <option value="call">Call</option>
+            <option value="personal">Personal</option>
+          </select>
+          <input type="text" id="ev-notes" placeholder="Notes (optional)" />
+          <button class="btn" style="align-self:flex-start" onclick="addEvent()">Add to calendar</button>
+        </div>
+        <div style="margin-top:1.25rem">
+          <div class="card-title">Upcoming</div>
+          <div id="event-list"><div class="loading">Loading…</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HABITS -->
+  <div class="panel" id="panel-habits">
+    <div class="card" style="margin-bottom:1rem">
+      <div class="card-title">Add habit</div>
+      <div class="input-row">
+        <input type="text" id="habit-name" placeholder="e.g. Post-lunch reset, Morning walk, Read…" />
+        <button class="btn" onclick="addHabit()">Add</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">This week</div>
+      <div id="habit-list"><div class="loading">Loading…</div></div>
+    </div>
+  </div>
+
+  <!-- NOTES -->
+  <div class="panel" id="panel-notes">
+    <div class="grid2">
+      <div class="card">
+        <div class="card-title">Today's note</div>
+        <textarea id="daily-note" placeholder="Brain dump, ideas, things on your mind…" oninput="debounceSaveNote()"></textarea>
+        <button class="btn" style="margin-top:8px" onclick="saveNoteEntry()">Save to archive</button>
+      </div>
+      <div class="card">
+        <div class="card-title">Saved notes</div>
+        <div id="saved-notes-list"><div class="loading">Loading…</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GRATITUDE -->
+  <div class="panel" id="panel-gratitude">
+    <div class="card" style="margin-bottom:1rem">
+      <div class="card-title">#365DaysOfGratitude</div>
+      <div class="input-row">
+        <input type="text" id="grat-input" placeholder="Today I am grateful for…" onkeydown="if(event.key==='Enter')addGratitude()" />
+        <button class="btn" onclick="addGratitude()">Add</button>
+      </div>
+    </div>
+    <div id="grat-list"><div class="loading">Loading…</div></div>
+    <div style="margin-top:0.75rem;text-align:right;font-size:11px;color:var(--text3)" id="grat-count"></div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, query, orderBy, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD3dA9ucJGdmrbjAsfFgL9oTURLr15gy9E",
+  authDomain: "my-dashboard-7902d.firebaseapp.com",
+  projectId: "my-dashboard-7902d",
+  storageBucket: "my-dashboard-7902d.firebasestorage.app",
+  messagingSenderId: "871647851570",
+  appId: "1:871647851570:web:076c5c7b1f57960030f82b"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let clients=[], tasks=[], events=[], habits=[], gratitudes=[], savedNotes=[];
+let calDate = new Date();
+const DAY_NAMES = ['S','M','T','W','T','F','S'];
+const CLIENT_COLORS = {'9Point':'#2563a8','MLN':'#2d6a4f','Apcotex':'#b45309','ABC':'#be185d','Other':'#6b6b65'};
+const EV_COLORS = {meeting:'#2563a8',deadline:'#b91c1c',call:'#b45309',personal:'#2d6a4f'};
+
+function todayStr(){ return new Date().toISOString().split('T')[0]; }
+function daysUntil(ds){ return Math.round((new Date(ds)-new Date(todayStr()))/86400000); }
+function urgencyBadge(ds){
+  const d=daysUntil(ds);
+  if(d<0) return '<span class="badge badge-red">Overdue</span>';
+  if(d===0) return '<span class="badge badge-red">Today</span>';
+  if(d<=3) return '<span class="badge badge-amber">'+d+'d</span>';
+  return '<span class="badge badge-green">'+d+'d</span>';
+}
+function greetingText(){
+  const h=new Date().getHours();
+  return h<12?'Good morning':h<17?'Good afternoon':'Good evening';
+}
+
+document.getElementById('greeting').textContent = greetingText();
+document.getElementById('todayDate').textContent = new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+
+function setSynced(){ document.getElementById('syncDot').classList.add('live'); document.getElementById('syncLabel').textContent='Synced across devices'; }
+function setSyncing(){ document.getElementById('syncDot').classList.remove('live'); document.getElementById('syncLabel').textContent='Syncing…'; }
+
+window.switchTab = function(name){
+  document.querySelectorAll('.tab').forEach((t,i)=>{
+    ['overview','clients','tasks','calendar','habits','notes','gratitude'].forEach((n,j)=>{ if(j===i) t.classList.toggle('active',n===name); });
+  });
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  if(name==='calendar') renderCal();
+};
+
+function renderOverview(){
+  const today=todayStr();
+  const todayTasks=tasks.filter(t=>!t.done&&t.due===today);
+  document.getElementById('today-tasks-list').innerHTML=todayTasks.length?todayTasks.map(t=>itemHTML(t,'tasks')).join(''):'<div class="empty">No tasks due today</div>';
+  const upcoming=[...clients].filter(c=>!c.done).sort((a,b)=>new Date(a.due)-new Date(b.due)).slice(0,6);
+  document.getElementById('overview-deadlines').innerHTML=upcoming.length?upcoming.map(c=>`<div class="item"><div class="client-dot" style="background:${CLIENT_COLORS[c.tag]||'#999'}"></div><span class="item-text">${c.task} <span style="font-size:11px;color:var(--text3)">(${c.name})</span></span>${urgencyBadge(c.due)}</div>`).join(''):'<div class="empty">No upcoming deadlines</div>';
+  const todayEv=events.filter(e=>e.date===today).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+  document.getElementById('overview-events').innerHTML=todayEv.length?todayEv.map(e=>`<div class="event-item" style="border-left-color:${EV_COLORS[e.type]||'#2563a8'}"><div><div class="etitle">${e.title}</div><div class="etime">${e.time||'All day'} · ${e.type}</div></div></div>`).join(''):'<div class="empty">Nothing scheduled today</div>';
+  document.getElementById('stat-tasks').textContent=todayTasks.length;
+  document.getElementById('stat-deadlines').textContent=clients.filter(c=>!c.done&&daysUntil(c.due)>=0&&daysUntil(c.due)<=7).length;
+  const todayDay=new Date().getDay();
+  document.getElementById('stat-habits').textContent=habits.filter(h=>h.week&&h.week[todayDay]).length+'/'+habits.length;
+}
+
+function itemHTML(item,col){
+  return `<div class="item ${item.done?'done':''}"><div class="check ${item.done?'checked':''}" onclick="toggleItem('${col}','${item.id}')">✓</div><span class="item-text">${item.text||item.task}</span><span class="item-meta">${item.category||item.tag||''}${item.due?' · '+item.due:''}</span><span class="del" onclick="deleteItem('${col}','${item.id}')">×</span></div>`;
+}
+
+window.addClient = async function(){
+  const name=document.getElementById('client-name').value.trim();
+  const task=document.getElementById('client-task').value.trim();
+  const due=document.getElementById('client-due').value;
+  const tag=document.getElementById('client-tag').value;
+  const priority=document.getElementById('client-priority').value;
+  if(!name||!task||!due) return;
+  setSyncing();
+  await addDoc(collection(db,'clients'),{name,task,due,tag,priority,done:false,created:Date.now()});
+  document.getElementById('client-name').value='';
+  document.getElementById('client-task').value='';
+  document.getElementById('client-due').value='';
+};
+
+function renderClients(){
+  const el=document.getElementById('client-list');
+  if(!clients.length){el.innerHTML='<div class="empty">No client deadlines yet</div>';return;}
+  el.innerHTML=[...clients].sort((a,b)=>new Date(a.due)-new Date(b.due)).map(c=>`<div class="item ${c.done?'done':''}"><div class="client-dot" style="background:${CLIENT_COLORS[c.tag]||'#999'}"></div><div class="check ${c.done?'checked':''}" onclick="toggleItem('clients','${c.id}')">✓</div><span class="item-text">${c.task} <span style="font-size:11px;color:var(--text3)">${c.name} · ${c.tag}</span></span>${c.done?'':urgencyBadge(c.due)}<span class="del" onclick="deleteItem('clients','${c.id}')">×</span></div>`).join('');
+}
+
+window.addTask = async function(){
+  const text=document.getElementById('task-text').value.trim();
+  const due=document.getElementById('task-due').value;
+  const category=document.getElementById('task-category').value;
+  if(!text) return;
+  setSyncing();
+  await addDoc(collection(db,'tasks'),{text,due,category,done:false,created:Date.now()});
+  document.getElementById('task-text').value='';
+  document.getElementById('task-due').value='';
+};
+
+function renderTasks(){
+  const active=tasks.filter(t=>!t.done).sort((a,b)=>(a.due||'9').localeCompare(b.due||'9'));
+  const done=tasks.filter(t=>t.done).slice(-8).reverse();
+  document.getElementById('task-list-active').innerHTML=active.length?active.map(t=>itemHTML(t,'tasks')).join(''):'<div class="empty">All clear</div>';
+  document.getElementById('task-list-done').innerHTML=done.length?done.map(t=>itemHTML(t,'tasks')).join(''):'<div class="empty">Nothing done yet</div>';
+}
+
+window.toggleItem = async function(col,id){
+  const arr=col==='clients'?clients:tasks;
+  const item=arr.find(x=>x.id===id);
+  if(!item) return;
+  setSyncing();
+  await updateDoc(doc(db,col,id),{done:!item.done});
+};
+
+window.deleteItem = async function(col,id){
+  if(!confirm('Delete this item?')) return;
+  setSyncing();
+  await deleteDoc(doc(db,col,id));
+};
+
+window.addEvent = async function(){
+  const title=document.getElementById('ev-title').value.trim();
+  const date=document.getElementById('ev-date').value;
+  const time=document.getElementById('ev-time').value;
+  const type=document.getElementById('ev-type').value;
+  const notes=document.getElementById('ev-notes').value.trim();
+  if(!title||!date) return;
+  setSyncing();
+  await addDoc(collection(db,'events'),{title,date,time,type,notes,created:Date.now()});
+  document.getElementById('ev-title').value='';
+  document.getElementById('ev-date').value='';
+  document.getElementById('ev-time').value='';
+  document.getElementById('ev-notes').value='';
+};
+
+window.deleteEvent = async function(id){
+  if(!confirm('Delete this event?')) return;
+  setSyncing();
+  await deleteDoc(doc(db,'events',id));
+};
+
+function renderCal(){
+  const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('cal-month-label').textContent=months[calDate.getMonth()]+' '+calDate.getFullYear();
+  document.getElementById('cal-names').innerHTML=DAY_NAMES.map(d=>`<div class="cal-day-name">${d}</div>`).join('');
+  const first=new Date(calDate.getFullYear(),calDate.getMonth(),1);
+  const last=new Date(calDate.getFullYear(),calDate.getMonth()+1,0);
+  let html='';
+  for(let i=0;i<first.getDay();i++) html+='<div class="cal-day other-month"></div>';
+  for(let d=1;d<=last.getDate();d++){
+    const ds=calDate.getFullYear()+'-'+String(calDate.getMonth()+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    html+=`<div class="cal-day ${ds===todayStr()?'today':''} ${events.some(e=>e.date===ds)?'has-event':''}">${d}</div>`;
+  }
+  document.getElementById('cal-days').innerHTML=html;
+  renderEventList();
+}
+
+function renderEventList(){
+  const upcoming=[...events].filter(e=>e.date>=todayStr()).sort((a,b)=>a.date.localeCompare(b.date)||(a.time||'').localeCompare(b.time||'')).slice(0,10);
+  document.getElementById('event-list').innerHTML=upcoming.length?upcoming.map(e=>`<div class="event-item" style="border-left-color:${EV_COLORS[e.type]||'#2563a8'}"><div style="flex:1"><div class="etitle">${e.title}</div><div class="etime">${e.date}${e.time?' · '+e.time:''} · ${e.type}${e.notes?' · '+e.notes:''}</div></div><span class="del" onclick="deleteEvent('${e.id}')">×</span></div>`).join(''):'<div class="empty">No upcoming events</div>';
+}
+
+window.prevMonth=function(){calDate.setMonth(calDate.getMonth()-1);renderCal();};
+window.nextMonth=function(){calDate.setMonth(calDate.getMonth()+1);renderCal();};
+
+window.addHabit = async function(){
+  const name=document.getElementById('habit-name').value.trim();
+  if(!name) return;
+  setSyncing();
+  await addDoc(collection(db,'habits'),{name,week:{},created:Date.now()});
+  document.getElementById('habit-name').value='';
+};
+
+window.toggleHabit = async function(id,day){
+  const h=habits.find(x=>x.id===id);
+  if(!h) return;
+  const week={...(h.week||{})};
+  week[day]=!week[day];
+  setSyncing();
+  await updateDoc(doc(db,'habits',id),{week});
+};
+
+window.deleteHabit = async function(id){
+  if(!confirm('Delete this habit?')) return;
+  setSyncing();
+  await deleteDoc(doc(db,'habits',id));
+};
+
+function renderHabits(){
+  const el=document.getElementById('habit-list');
+  if(!habits.length){el.innerHTML='<div class="empty">No habits tracked yet</div>';return;}
+  el.innerHTML=habits.map(h=>`<div class="habit-row"><span class="habit-name">${h.name}</span><div class="habit-dots">${DAY_NAMES.map((d,i)=>`<div class="hdot ${h.week&&h.week[i]?'done':''}" onclick="toggleHabit('${h.id}',${i})" title="${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][i]}">${d}</div>`).join('')}</div><span class="del" onclick="deleteHabit('${h.id}')">×</span></div>`).join('');
+}
+
+let noteTimer;
+window.debounceSaveNote = function(){
+  clearTimeout(noteTimer);
+  noteTimer=setTimeout(async()=>{
+    setSyncing();
+    await setDoc(doc(db,'notes','draft'),{text:document.getElementById('daily-note').value,updated:Date.now()});
+    setSynced();
+  },1200);
+};
+
+window.saveNoteEntry = async function(){
+  const text=document.getElementById('daily-note').value.trim();
+  if(!text) return;
+  setSyncing();
+  await addDoc(collection(db,'savedNotes'),{text,date:todayStr(),created:Date.now()});
+  alert('Saved to archive.');
+};
+
+function renderSavedNotes(){
+  const el=document.getElementById('saved-notes-list');
+  if(!savedNotes.length){el.innerHTML='<div class="empty">No archived notes yet</div>';return;}
+  el.innerHTML=savedNotes.slice(0,6).map(n=>`<div style="margin-bottom:8px;padding:8px 10px;background:var(--surface2);border-radius:var(--radius-sm);font-size:13px"><div style="font-size:11px;color:var(--text3);margin-bottom:3px">${n.date}</div><div style="color:var(--text);line-height:1.5">${(n.text||'').slice(0,140)}${(n.text||'').length>140?'…':''}</div></div>`).join('');
+}
+
+window.addGratitude = async function(){
+  const text=document.getElementById('grat-input').value.trim();
+  if(!text) return;
+  setSyncing();
+  await addDoc(collection(db,'gratitude'),{text,date:todayStr(),created:Date.now()});
+  document.getElementById('grat-input').value='';
+};
+
+window.deleteGrat = async function(id){
+  setSyncing();
+  await deleteDoc(doc(db,'gratitude',id));
+};
+
+function renderGratitude(){
+  const el=document.getElementById('grat-list');
+  if(!gratitudes.length){el.innerHTML='<div class="empty">Start your gratitude log</div>';return;}
+  el.innerHTML=gratitudes.slice(0,30).map(g=>`<div class="grat-item"><span class="gdate">${g.date}</span><span class="gtext">${g.text}</span><span class="del" onclick="deleteGrat('${g.id}')">×</span></div>`).join('');
+  document.getElementById('grat-count').textContent=gratitudes.length+' entries total';
+}
+
+function listen(col,arr,renderFn){
+  onSnapshot(query(collection(db,col),orderBy('created','desc')),snap=>{
+    arr.length=0;
+    snap.forEach(d=>arr.push({id:d.id,...d.data()}));
+    renderFn();
+    renderOverview();
+    setSynced();
+  },err=>{ console.error(col,err); setSynced(); });
+}
+
+listen('clients',clients,renderClients);
+listen('tasks',tasks,renderTasks);
+listen('habits',habits,renderHabits);
+listen('gratitude',gratitudes,renderGratitude);
+listen('savedNotes',savedNotes,renderSavedNotes);
+
+onSnapshot(query(collection(db,'events'),orderBy('date','asc')),snap=>{
+  events.length=0;
+  snap.forEach(d=>events.push({id:d.id,...d.data()}));
+  renderCal();
+  renderOverview();
+  setSynced();
+});
+
+getDoc(doc(db,'notes','draft')).then(d=>{ if(d.exists()) document.getElementById('daily-note').value=d.data().text||''; }).catch(()=>{});
+
+renderCal();
+</script>
+</body>
+</html>
